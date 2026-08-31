@@ -51,15 +51,21 @@ Jei interneto nėra (arba laukai tušti) – užsakymai vis tiek saugomi LittleF
 
 ## Administravimas
 
+- **Admin puslapis (telefonu): `http://192.168.4.1/admin`** – prisijunkite su admin
+  raktu ir tvarkykite produktus: įkelkite nuotrauką (automatiškai sumažinama iki
+  800 px tiesiog telefone), įrašykite pavadinimą, kainą, kategoriją, aprašymą.
+  Pakeitimai iškart matomi parduotuvėje – LittleFS iš naujo kelti nereikia.
+  Produktai saugomi `/products.json`; kol jo nėra – rodomi numatytieji iš `app.js`.
 - Užsakymų peržiūra: `http://192.168.4.1/api/orders?key=admin123`
 - Užsakymų išvalymas: `http://192.168.4.1/api/orders/clear?key=admin123`
 - Raktą keiskite `ADMIN_KEY` konstantoje.
 
 ## Produktų keitimas
 
-Produktai hardcoded faile `data/app.js` – masyvas `P` (pavadinimas `n`, kategorija `c`,
-kaina `p`, spalva `col`, aprašymas `d`, sudėtis `i`, `feat:1` – rodyti pradžioje).
-Pakeitus – iš naujo įkelti LittleFS.
+Paprasčiausia – per **admin puslapį** `http://192.168.4.1/admin` (žr. aukščiau).
+Numatytieji produktai (naudojami, kol admin neišsaugojo savų) – faile `data/app.js`,
+masyvas `P` (pavadinimas `n`, kategorija `c`, kaina `p`, spalva `col`, aprašymas `d`,
+sudėtis `i`, `feat:1` – rodyti pradžioje).
 
 ## Jūsų nuotraukos
 

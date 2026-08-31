@@ -2,7 +2,8 @@
 // Produktai hardcoded žemiau. Nuotraukos: data/img/p{id}.jpg (žr. img/README.txt);
 // jei nuotraukos nėra – rodoma generuojama SVG iliustracija.
 const IMG_EXT = 'jpg';
-const P = [
+// Numatytieji produktai – naudojami, kol admin neišsaugojo savų (/products.json per /admin)
+let P = [
  {id:1,n:"Rožių veido kremas",c:"Veidui",p:14.90,col:"#e8b4c8",d:"Maitinamasis veido kremas su damaskinių rožių aliejumi. Tinka sausai ir normaliai odai.",i:["Rožių aliejus","Taukmedžio sviestas","Vitaminas E","Bičių vaškas"],feat:1},
  {id:2,n:"Levandų naktinis kremas",c:"Veidui",p:16.50,col:"#b8a8d8",d:"Raminantis naktinis kremas su levandų eteriniu aliejumi. Atstato odą miego metu.",i:["Levandų aliejus","Avokadų aliejus","Skvalanas","Ramunėlių ekstraktas"],feat:1},
  {id:3,n:"Medaus rankų kremas",c:"Rankoms",p:8.90,col:"#e8c890",d:"Intensyviai drėkinantis rankų kremas su natūraliu medumi ir propoliu.",i:["Medus","Propolis","Alyvuogių aliejus","Glicerinas"],feat:1},
@@ -38,8 +39,9 @@ function svgPic(p) {
   </svg>`;
 }
 function pic(p, cls) {
+  const v = p.v ? '?v=' + p.v : '';
   return `<div class="p-img ${cls||''}" title="${p.n}">${svgPic(p)}
-    <img src="img/p${p.id}.${IMG_EXT}" alt="${p.n}" loading="lazy"
+    <img src="img/p${p.id}.${IMG_EXT}${v}" alt="${p.n}" loading="lazy"
       onload="this.classList.add('ok')" onerror="this.remove()"></div>`;
 }
 function shade(hex) {
@@ -212,6 +214,22 @@ function sendOrder(e) {
 }
 
 // --- init ---
-document.getElementById('featured').innerHTML = P.filter(p=>p.feat).map(cardHTML).join('');
+function renderHome() {
+  const feat = P.filter(p=>p.feat);
+  document.getElementById('featured').innerHTML = (feat.length ? feat : P.slice(0,3)).map(cardHTML).join('');
+}
+renderHome();
 renderShop();
 saveCart();
+
+// Admin per /admin galėjo pakeisti produktus – užkraunam iš ESP32, jei yra
+fetch('/api/products', {cache:'no-store'})
+  .then(r => r.ok ? r.json() : null)
+  .then(list => {
+    if (!Array.isArray(list) || !list.length) return;
+    P = list;
+    // krepšelio validacija pagal naują sąrašą
+    for (const id in cart) if (!P.some(p => p.id == id)) delete cart[id];
+    renderHome(); renderShop(); saveCart();
+  })
+  .catch(() => {});

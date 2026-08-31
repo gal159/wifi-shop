@@ -175,6 +175,80 @@ void handleOrdersClear() {
   server.send(200, "text/plain", "Isvalyta.");
 }
 
+// ---------- Admin: produktai ir nuotraukos ----------
+// Produktų sąrašą (JSON masyvą) valdo admin.html; ESP32 jį tik saugo /products.json.
+void handleProducts() {
+  server.sendHeader("Cache-Control", "no-store");
+  if (!LittleFS.exists("/products.json")) { server.send(404, "application/json", "[]"); return; }
+  File f = LittleFS.open("/products.json", "r");
+  server.streamFile(f, "application/json");
+  f.close();
+}
+
+void handleAdminCheck() {
+  if (server.arg("key") != ADMIN_KEY) { server.send(403, "text/plain", "Neteisingas raktas"); return; }
+  server.send(200, "application/json", "{\"ok\":1}");
+}
+
+void handleAdminSave() {
+  if (server.arg("key") != ADMIN_KEY) { server.send(403, "text/plain", "Neteisingas raktas"); return; }
+  if (server.method() != HTTP_POST) { server.send(405, "text/plain", "POST only"); return; }
+  String body = server.arg("plain");
+  if (body.length() < 2 || body.length() > 24576 || body[0] != '[') {
+    server.send(400, "application/json", "{\"err\":\"bad body\"}");
+    return;
+  }
+  File f = LittleFS.open("/products.json", "w");
+  if (!f) { server.send(500, "application/json", "{\"err\":\"fs\"}"); return; }
+  f.print(body);
+  f.close();
+  Serial.printf("[ADMIN] products.json issaugotas (%u B)\n", body.length());
+  server.send(200, "application/json", "{\"ok\":1}");
+}
+
+// Nuotraukos įkėlimas: POST /api/admin/upload?key=...&name=p3.jpg (multipart "file")
+File upFile;
+bool upOk = false;
+void handleUpload() {
+  HTTPUpload& up = server.upload();
+  if (up.status == UPLOAD_FILE_START) {
+    upOk = false;
+    if (server.arg("key") != ADMIN_KEY) return;
+    String name = server.arg("name");
+    // saugumo dėlei: tik paprastas failo vardas, be kelių
+    if (!name.length() || name.length() > 40) return;
+    for (size_t i = 0; i < name.length(); i++) {
+      char c = name[i];
+      if (!isalnum(c) && c != '.' && c != '-' && c != '_') return;
+    }
+    if (!LittleFS.exists("/img")) LittleFS.mkdir("/img");
+    upFile = LittleFS.open("/img/" + name, "w");
+    upOk = (bool)upFile;
+  } else if (up.status == UPLOAD_FILE_WRITE) {
+    if (upFile) upFile.write(up.buf, up.currentSize);
+  } else if (up.status == UPLOAD_FILE_END) {
+    if (upFile) { upFile.close(); Serial.printf("[ADMIN] ikelta /img/%s (%u B)\n", server.arg("name").c_str(), up.totalSize); }
+  } else if (up.status == UPLOAD_FILE_ABORTED) {
+    if (upFile) upFile.close();
+    upOk = false;
+  }
+}
+void handleUploadDone() {
+  if (server.arg("key") != ADMIN_KEY) { server.send(403, "text/plain", "Neteisingas raktas"); return; }
+  server.send(upOk ? 200 : 500, "application/json", upOk ? "{\"ok\":1}" : "{\"err\":\"upload\"}");
+}
+
+void handleRmImg() {
+  if (server.arg("key") != ADMIN_KEY) { server.send(403, "text/plain", "Neteisingas raktas"); return; }
+  String name = server.arg("name");
+  for (size_t i = 0; i < name.length(); i++) {
+    char c = name[i];
+    if (!isalnum(c) && c != '.' && c != '-' && c != '_') { server.send(400, "text/plain", "bad name"); return; }
+  }
+  LittleFS.remove("/img/" + name);
+  server.send(200, "application/json", "{\"ok\":1}");
+}
+
 // ---------- setup / loop ----------
 void setup() {
   Serial.begin(115200);
@@ -213,6 +287,14 @@ void setup() {
   server.on("/api/order", handleOrder);
   server.on("/api/orders", handleOrdersList);
   server.on("/api/orders/clear", handleOrdersClear);
+
+  // Admin
+  server.on("/api/products", handleProducts);
+  server.on("/api/admin/check", handleAdminCheck);
+  server.on("/api/admin/save", handleAdminSave);
+  server.on("/api/admin/upload", HTTP_POST, handleUploadDone, handleUpload);
+  server.on("/api/admin/rmimg", handleRmImg);
+  server.on("/admin", []() { serveFile("/admin.html"); });
 
   // Captive portal patikros (Android/iOS/Windows)
   server.on("/generate_204", []() { captiveRedirect(); });
