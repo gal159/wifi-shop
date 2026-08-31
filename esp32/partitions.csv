@@ -1,0 +1,9 @@
+# 4 MB Flash iskaidymas pagal projekta:
+#  ~100 KB  sistemai / NVS (bootloader + part. lentele + nvs + phy)
+#  ~1 MB    ESP32 programai (factory app, be OTA)
+#  ~2.87 MB LittleFS svetainei ir uzsakymams
+# Name,     Type, SubType,  Offset,   Size
+nvs,        data, nvs,      0x9000,   0x16000
+phy_init,   data, phy,      0x1F000,  0x1000
+factory,    app,  factory,  0x20000,  0x100000
+littlefs,   data, spiffs,   0x120000, 0x2E0000

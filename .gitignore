@@ -1,0 +1,8 @@
+# Arduino build artefaktai
+esp32/build/
+*.bin
+*.elf
+
+# Vietiniai/laikini
+Thumbs.db
+.DS_Store
