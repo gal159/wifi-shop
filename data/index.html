@@ -12,17 +12,21 @@
 <header>
   <div class="wrap header-in">
     <a href="#" class="logo" onclick="show('home');return false;">
-      <svg viewBox="0 0 40 40" width="34" height="34"><circle cx="20" cy="20" r="18" fill="#e8b4c8"/><path d="M13 26c0-6 3-12 7-14 4 2 7 8 7 14 0 3-3 5-7 5s-7-2-7-5z" fill="#fff"/></svg>
+      <svg viewBox="0 0 40 40" width="36" height="36"><circle cx="20" cy="20" r="18" fill="#e8b4c8"/><path d="M13 26c0-6 3-12 7-14 4 2 7 8 7 14 0 3-3 5-7 5s-7-2-7-5z" fill="#fff"/></svg>
       <span>Kremų <b>Namai</b></span>
     </a>
-    <nav>
-      <a href="#" onclick="show('home');return false;">Pradžia</a>
-      <a href="#" onclick="show('shop');return false;">Parduotuvė</a>
-      <a href="#" onclick="show('about');return false;">Apie mus</a>
-      <a href="#" onclick="show('contact');return false;">Kontaktai</a>
+    <button class="burger" onclick="toggleNav()" aria-label="Meniu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav id="nav">
+      <a href="#" data-p="home" class="act" onclick="show('home');return false;">Pradžia</a>
+      <a href="#" data-p="shop" onclick="show('shop');return false;">Parduotuvė</a>
+      <a href="#" data-p="about" onclick="show('about');return false;">Apie mus</a>
+      <a href="#" data-p="contact" onclick="show('contact');return false;">Kontaktai</a>
     </nav>
-    <button class="cart-btn" onclick="show('cart')">
-      🛒 <span id="cartCount">0</span>
+    <button class="cart-btn" onclick="show('cart')" aria-label="Krepšelis">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span id="cartCount">0</span>
     </button>
   </div>
 </header>
@@ -33,28 +37,37 @@
 <section id="page-home" class="page">
   <div class="hero">
     <div class="hero-txt">
+      <div class="hero-tag">Rankų darbo kosmetika</div>
       <h1>Natūralūs kremai<br>Jūsų odai</h1>
       <p>Rankomis gaminta kosmetika iš natūralių ingredientų. Be parabenų, be sintetinių kvapiklių.</p>
-      <button class="btn" onclick="show('shop')">Apžiūrėti kremus</button>
+      <div class="hero-btns">
+        <button class="btn" onclick="show('shop')">Apžiūrėti kremus</button>
+        <button class="btn btn-o" onclick="show('about')">Apie mus</button>
+      </div>
     </div>
-    <svg class="hero-img" viewBox="0 0 300 300">
-      <circle cx="150" cy="150" r="140" fill="#fdf0f5"/>
-      <rect x="95" y="110" width="110" height="120" rx="14" fill="#e8b4c8"/>
-      <rect x="95" y="92" width="110" height="26" rx="8" fill="#c98aa8"/>
-      <ellipse cx="150" cy="230" rx="55" ry="8" fill="#e2cdd8"/>
-      <path d="M120 150c8-12 22-18 30-14 8-4 22 2 30 14 6 10-4 24-30 34-26-10-36-24-30-34z" fill="#fff"/>
-      <circle cx="228" cy="88" r="16" fill="#f4d8e4"/>
-      <circle cx="62" cy="200" r="10" fill="#f4d8e4"/>
-    </svg>
+    <div class="hero-media">
+      <svg class="hero-img" viewBox="0 0 300 300" aria-hidden="true">
+        <circle cx="150" cy="150" r="140" fill="#fbe4ee"/>
+        <rect x="95" y="110" width="110" height="120" rx="14" fill="#e8b4c8"/>
+        <rect x="95" y="92" width="110" height="26" rx="8" fill="#c98aa8"/>
+        <ellipse cx="150" cy="230" rx="55" ry="8" fill="#e2cdd8"/>
+        <path d="M120 150c8-12 22-18 30-14 8-4 22 2 30 14 6 10-4 24-30 34-26-10-36-24-30-34z" fill="#fff"/>
+        <circle cx="228" cy="88" r="16" fill="#f4d8e4"/>
+        <circle cx="62" cy="200" r="10" fill="#f4d8e4"/>
+      </svg>
+      <!-- Jūsų nuotrauka: data/img/hero.jpg (žr. img/README.txt) -->
+      <img class="hero-photo" src="img/hero.jpg" alt="Kremų Namai"
+        onload="this.classList.add('ok')" onerror="this.remove()">
+    </div>
   </div>
 
   <h2 class="sec-t">Populiariausi produktai</h2>
   <div class="grid" id="featured"></div>
 
   <div class="perks">
-    <div class="perk"><b>🌿 100% natūralu</b><span>Tik augalinės kilmės ingredientai</span></div>
-    <div class="perk"><b>🐰 Netestuota su gyvūnais</b><span>Cruelty-free gamyba</span></div>
-    <div class="perk"><b>🇱🇹 Pagaminta Lietuvoje</b><span>Mažos partijos, šviežia produkcija</span></div>
+    <div class="perk"><div class="perk-ico">🌿</div><b>100% natūralu</b><span>Tik augalinės kilmės ingredientai</span></div>
+    <div class="perk"><div class="perk-ico">🐰</div><b>Netestuota su gyvūnais</b><span>Cruelty-free gamyba</span></div>
+    <div class="perk"><div class="perk-ico">🇱🇹</div><b>Pagaminta Lietuvoje</b><span>Mažos partijos, šviežia produkcija</span></div>
   </div>
 </section>
 
@@ -74,11 +87,11 @@
 <section id="page-cart" class="page" hidden>
   <h2 class="sec-t">Krepšelis</h2>
   <div id="cartItems"></div>
-  <div id="checkoutBox" hidden>
+  <div id="checkoutBox" class="card" hidden>
     <h3>Užsakymo duomenys</h3>
     <form id="orderForm" onsubmit="sendOrder(event)">
-      <input name="name" placeholder="Vardas, pavardė" required maxlength="60">
-      <input name="phone" placeholder="Telefonas" required maxlength="20">
+      <input name="name" placeholder="Vardas, pavardė" required maxlength="60" autocomplete="name">
+      <input name="phone" type="tel" placeholder="Telefonas" required maxlength="20" autocomplete="tel">
       <textarea name="note" placeholder="Pastabos (nebūtina)" maxlength="200"></textarea>
       <button class="btn" type="submit">Pateikti užsakymą</button>
     </form>
@@ -89,6 +102,9 @@
 <!-- APIE -->
 <section id="page-about" class="page" hidden>
   <h2 class="sec-t">Apie mus</h2>
+  <!-- Jūsų nuotrauka: data/img/about.jpg (žr. img/README.txt) -->
+  <img class="about-photo" src="img/about.jpg" alt="Mūsų dirbtuvės"
+    onload="this.classList.add('ok')" onerror="this.remove()">
   <div class="card txt">
     <p>„Kremų Namai" – maža šeimos manufaktūra, gaminanti natūralią odos priežiūros kosmetiką nuo 2018 m. Visi mūsų kremai gaminami rankomis, mažomis partijomis, naudojant tik patikrintus natūralius ingredientus.</p>
     <p>Mūsų filosofija paprasta: oda nusipelno geriausio, ką duoda gamta – šaltai spaustų aliejų, augalų ekstraktų ir eterinių aliejų. Jokių parabenų, silikonų ar sintetinių kvapiklių.</p>
@@ -99,20 +115,40 @@
 <!-- KONTAKTAI -->
 <section id="page-contact" class="page" hidden>
   <h2 class="sec-t">Kontaktai</h2>
-  <div class="card txt">
-    <p><b>📍 Adresas:</b> Gėlių g. 12, Vilnius</p>
-    <p><b>📞 Telefonas:</b> +370 600 00000</p>
-    <p><b>✉️ El. paštas:</b> info@kremunamai.lt</p>
-    <p><b>🕐 Darbo laikas:</b> I–V 9:00–18:00, VI 10:00–14:00</p>
-    <p class="muted">Ši svetainė veikia autonomiškai – užsakymai priimami vietoje, o patvirtinami susisiekus telefonu.</p>
+  <div class="contact-grid">
+    <div class="card c-item"><div class="perk-ico">📍</div><b>Adresas</b><span>Gėlių g. 12, Vilnius</span></div>
+    <div class="card c-item"><div class="perk-ico">📞</div><b>Telefonas</b><span>+370 600 00000</span></div>
+    <div class="card c-item"><div class="perk-ico">✉️</div><b>El. paštas</b><span>info@kremunamai.lt</span></div>
+    <div class="card c-item"><div class="perk-ico">🕐</div><b>Darbo laikas</b><span>I–V 9:00–18:00<br>VI 10:00–14:00</span></div>
   </div>
+  <p class="muted center">Ši svetainė veikia autonomiškai – užsakymai priimami vietoje, o patvirtinami susisiekus telefonu.</p>
 </section>
 
 </main>
 
 <footer>
-  <div class="wrap">© 2026 Kremų Namai · Natūrali kosmetika · Svetainė veikia be interneto 📶</div>
+  <div class="wrap foot-in">
+    <div>
+      <div class="logo foot-logo">Kremų <b>Namai</b></div>
+      <p class="muted">Natūrali rankų darbo kosmetika iš Lietuvos.</p>
+    </div>
+    <div>
+      <b>Nuorodos</b>
+      <a href="#" onclick="show('shop');return false;">Parduotuvė</a>
+      <a href="#" onclick="show('about');return false;">Apie mus</a>
+      <a href="#" onclick="show('contact');return false;">Kontaktai</a>
+    </div>
+    <div>
+      <b>Kontaktai</b>
+      <span>Gėlių g. 12, Vilnius</span>
+      <span>+370 600 00000</span>
+      <span>info@kremunamai.lt</span>
+    </div>
+  </div>
+  <div class="foot-btm">© 2026 Kremų Namai · Svetainė veikia be interneto 📶</div>
 </footer>
+
+<div id="toast" role="status"></div>
 
 <script src="app.js"></script>
 </body>

@@ -60,3 +60,17 @@ Jei interneto nėra (arba laukai tušti) – užsakymai vis tiek saugomi LittleF
 Produktai hardcoded faile `data/app.js` – masyvas `P` (pavadinimas `n`, kategorija `c`,
 kaina `p`, spalva `col`, aprašymas `d`, sudėtis `i`, `feat:1` – rodyti pradžioje).
 Pakeitus – iš naujo įkelti LittleFS.
+
+## Jūsų nuotraukos
+
+Nuotraukas dėkite į `data/img/` (žr. `data/img/README.txt`):
+
+| Failas | Kur rodoma |
+|---|---|
+| `p1.jpg` … `p10.jpg` | Produktų nuotraukos (pagal produkto ID) |
+| `hero.jpg` | Pradžios puslapio didžioji nuotrauka |
+| `about.jpg` | „Apie mus" puslapio nuotrauka |
+
+Jei nuotraukos nėra – automatiškai rodoma graži SVG iliustracija, tad svetainė
+veikia ir be jų. Rekomendacija: JPG ~800×600, iki 150 KB (visos kartu turi tilpti
+į LittleFS ~2,8 MB). Įkėlus – iš naujo įkelti LittleFS.

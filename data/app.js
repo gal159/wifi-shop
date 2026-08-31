@@ -1,4 +1,7 @@
-// Kremų Namai – SPA logika. Produktai hardcoded, paveikslėliai – generuojami SVG.
+// Kremų Namai – SPA logika.
+// Produktai hardcoded žemiau. Nuotraukos: data/img/p{id}.jpg (žr. img/README.txt);
+// jei nuotraukos nėra – rodoma generuojama SVG iliustracija.
+const IMG_EXT = 'jpg';
 const P = [
  {id:1,n:"Rožių veido kremas",c:"Veidui",p:14.90,col:"#e8b4c8",d:"Maitinamasis veido kremas su damaskinių rožių aliejumi. Tinka sausai ir normaliai odai.",i:["Rožių aliejus","Taukmedžio sviestas","Vitaminas E","Bičių vaškas"],feat:1},
  {id:2,n:"Levandų naktinis kremas",c:"Veidui",p:16.50,col:"#b8a8d8",d:"Raminantis naktinis kremas su levandų eteriniu aliejumi. Atstato odą miego metu.",i:["Levandų aliejus","Avokadų aliejus","Skvalanas","Ramunėlių ekstraktas"],feat:1},
@@ -12,12 +15,19 @@ const P = [
  {id:10,n:"Apsauginis žiemos kremas",c:"Veidui",p:13.50,col:"#a8c8e0",d:"Apsauginis kremas nuo šalčio ir vėjo. Sukuria apsauginį barjerą odai.",i:["Bičių vaškas","Lanolinas","Saulėgrąžų aliejus"],feat:0}
 ];
 
+// --- krepšelis iš localStorage (su validacija) ---
 let cart = {};
-try { cart = JSON.parse(localStorage.getItem('cart') || '{}'); } catch(e) {}
+try {
+  const saved = JSON.parse(localStorage.getItem('cart') || '{}');
+  for (const id in saved) {
+    const q = saved[id];
+    if (P.some(p => p.id == id) && Number.isFinite(q) && q > 0) cart[id] = Math.floor(q);
+  }
+} catch(e) {}
 
-// SVG kremo indelis produkto spalva
-function pic(p, cls) {
-  return `<svg class="${cls||''}" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid meet">
+// --- paveikslėliai: nuotrauka img/p{id}.jpg, fallback – SVG ---
+function svgPic(p) {
+  return `<svg viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <rect width="200" height="150" fill="#fdf0f5"/>
     <ellipse cx="100" cy="128" rx="46" ry="6" fill="rgba(0,0,0,.07)"/>
     <rect x="60" y="55" width="80" height="72" rx="10" fill="${p.col}"/>
@@ -27,6 +37,11 @@ function pic(p, cls) {
     <circle cx="36" cy="98" r="6" fill="${p.col}" opacity=".4"/>
   </svg>`;
 }
+function pic(p, cls) {
+  return `<div class="p-img ${cls||''}" title="${p.n}">${svgPic(p)}
+    <img src="img/p${p.id}.${IMG_EXT}" alt="${p.n}" loading="lazy"
+      onload="this.classList.add('ok')" onerror="this.remove()"></div>`;
+}
 function shade(hex) {
   const n = parseInt(hex.slice(1), 16);
   const f = x => Math.max(0, x - 40);
@@ -34,12 +49,31 @@ function shade(hex) {
 }
 function eur(v){ return v.toFixed(2).replace('.',',') + ' €'; }
 
+// --- toast pranešimai ---
+let toastT;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
 // --- navigacija ---
 function show(page) {
   document.querySelectorAll('.page').forEach(s => s.hidden = true);
-  document.getElementById('page-' + page).hidden = false;
+  const el = document.getElementById('page-' + page);
+  if (!el) return;
+  el.hidden = false;
+  el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade');
+  document.querySelectorAll('nav a').forEach(a =>
+    a.classList.toggle('act', a.dataset.p === page));
+  document.getElementById('nav').classList.remove('open');
   if (page === 'cart') renderCart();
   window.scrollTo(0, 0);
+}
+function toggleNav() {
+  document.getElementById('nav').classList.toggle('open');
 }
 
 // --- produktų kortelės ---
@@ -49,8 +83,10 @@ function cardHTML(p) {
     <div class="p-body">
       <div class="p-cat">${p.c}</div>
       <h3>${p.n}</h3>
-      <div class="p-price">${eur(p.p)}</div>
-      <button class="btn btn-sm" onclick="event.stopPropagation();add(${p.id})">Į krepšelį</button>
+      <div class="p-row">
+        <div class="p-price">${eur(p.p)}</div>
+        <button class="btn btn-sm" onclick="event.stopPropagation();add(${p.id})">Į krepšelį</button>
+      </div>
     </div>
   </div>`;
 }
@@ -66,10 +102,11 @@ function renderShop() {
 
 function openProduct(id) {
   const p = P.find(x => x.id === id);
+  if (!p) return;
   document.getElementById('productDetail').innerHTML = `
     <button class="back" onclick="show('shop')">← Grįžti į parduotuvę</button>
     <div class="detail">
-      ${pic(p)}
+      ${pic(p, 'detail-img')}
       <div class="detail-txt">
         <div class="p-cat">${p.c}</div>
         <h2>${p.n}</h2>
@@ -78,7 +115,7 @@ function openProduct(id) {
         <b>Sudėtis:</b>
         <ul>${p.i.map(x=>`<li>${x}</li>`).join('')}</ul>
         <div class="qty">
-          <button onclick="qv(-1)">−</button><span id="qv">1</span><button onclick="qv(1)">+</button>
+          <button onclick="qv(-1)" aria-label="Mažiau">−</button><span id="qv">1</span><button onclick="qv(1)" aria-label="Daugiau">+</button>
         </div><br>
         <button class="btn" onclick="add(${p.id}, +document.getElementById('qv').textContent)">Į krepšelį</button>
       </div>
@@ -92,8 +129,12 @@ function qv(d) {
 
 // --- krepšelis ---
 function add(id, q) {
+  if (!P.some(p => p.id === id)) return;
   cart[id] = (cart[id] || 0) + (q || 1);
   saveCart();
+  toast('✓ Pridėta į krepšelį');
+  const b = document.getElementById('cartCount');
+  b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
 }
 function saveCart() {
   localStorage.setItem('cart', JSON.stringify(cart));
@@ -106,7 +147,11 @@ function renderCart() {
   document.getElementById('orderMsg').hidden = true;
   const ids = Object.keys(cart);
   if (!ids.length) {
-    box.innerHTML = '<p class="muted">Krepšelis tuščias. <a href="#" onclick="show(\'shop\');return false;">Eiti į parduotuvę</a></p>';
+    box.innerHTML = `<div class="empty">
+      <div class="empty-ico">🛒</div>
+      <p>Krepšelis tuščias</p>
+      <button class="btn" onclick="show('shop')">Eiti į parduotuvę</button>
+    </div>`;
     co.hidden = true;
     return;
   }
@@ -114,16 +159,17 @@ function renderCart() {
   box.innerHTML = ids.map(id => {
     const p = P.find(x => x.id == id), q = cart[id];
     total += p.p * q;
-    return `<div class="cart-row">${pic(p)}
+    return `<div class="cart-row">${pic(p, 'cart-img')}
       <div class="grow"><b>${p.n}</b><br><span class="muted">${eur(p.p)} × ${q}</span></div>
-      <div class="qty"><button onclick="cq(${id},-1)">−</button><span>${q}</span><button onclick="cq(${id},1)">+</button></div>
-      <b>${eur(p.p*q)}</b>
-      <button class="x" onclick="delete cart[${id}];saveCart();renderCart()">✕</button>
+      <div class="qty"><button onclick="cq(${id},-1)" aria-label="Mažiau">−</button><span>${q}</span><button onclick="cq(${id},1)" aria-label="Daugiau">+</button></div>
+      <b class="row-sum">${eur(p.p*q)}</b>
+      <button class="x" onclick="delete cart[${id}];saveCart();renderCart()" aria-label="Pašalinti">✕</button>
     </div>`;
   }).join('') + `<div class="cart-total">Iš viso: <b>${eur(total)}</b></div>`;
   co.hidden = false;
 }
 function cq(id, d) {
+  if (!(id in cart)) return;
   cart[id] += d;
   if (cart[id] <= 0) delete cart[id];
   saveCart(); renderCart();
@@ -133,6 +179,9 @@ function cq(id, d) {
 function sendOrder(e) {
   e.preventDefault();
   const f = e.target;
+  const btn = f.querySelector('button[type=submit]');
+  if (btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Siunčiama…';
   const items = Object.keys(cart).map(id => {
     const p = P.find(x => x.id == id);
     return { id: p.id, n: p.n, q: cart[id], p: p.p };
@@ -154,6 +203,7 @@ function sendOrder(e) {
     .catch(() => done('✅ Užsakymas užregistruotas vietoje. Parodykite jį kasoje arba paskambinkite +370 600 00000.'));
   function done(msg) {
     cart = {}; saveCart(); f.reset();
+    btn.disabled = false; btn.textContent = 'Pateikti užsakymą';
     document.getElementById('cartItems').innerHTML = '';
     document.getElementById('checkoutBox').hidden = true;
     const m = document.getElementById('orderMsg');
