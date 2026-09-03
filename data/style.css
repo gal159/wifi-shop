@@ -186,6 +186,8 @@ textarea{resize:vertical;min-height:72px}
   background:#e9f7ee;border:1px solid #b5dfc0;color:#2c6e3f;border-radius:var(--r);
   padding:20px;margin-top:16px;font-size:1.05em;box-shadow:var(--sh);
 }
+#orderMsg p{margin-bottom:14px}
+.sms-btn{display:inline-block;text-decoration:none;text-align:center}
 
 /* --- apie / kontaktai --- */
 .txt{padding:26px 28px}

@@ -2,6 +2,7 @@
 // Produktai hardcoded žemiau. Nuotraukos: data/img/p{id}.jpg (žr. img/README.txt);
 // jei nuotraukos nėra – rodoma generuojama SVG iliustracija.
 const IMG_EXT = 'jpg';
+const SHOP_PHONE = '+37060000000'; // parduotuvės numeris SMS užsakymams
 // Numatytieji produktai – naudojami, kol admin neišsaugojo savų (/products.json per /admin)
 let P = [
  {id:1,n:"Rožių veido kremas",c:"Veidui",p:14.90,col:"#e8b4c8",d:"Maitinamasis veido kremas su damaskinių rožių aliejumi. Tinka sausai ir normaliai odai.",i:["Rožių aliejus","Taukmedžio sviestas","Vitaminas E","Bičių vaškas"],feat:1},
@@ -196,20 +197,29 @@ function sendOrder(e) {
     + `\n👤 ${f.name.value}\n📞 ${f.phone.value}`
     + (f.note.value ? `\n📝 ${f.note.value}` : '');
   const order = { name: f.name.value, phone: f.phone.value, note: f.note.value, items, total: +total.toFixed(2), tg };
+  // SMS tekstas be emoji (SMS koduotei draugiškesnis)
+  const smsText = 'UZSAKYMAS - Kremu Namai\n'
+    + items.map(i => `${i.n} x ${i.q}`).join('\n')
+    + `\nViso: ${total.toFixed(2)} EUR`
+    + `\nVardas: ${f.name.value}\nTel: ${f.phone.value}`
+    + (f.note.value ? `\nPastabos: ${f.note.value}` : '');
   fetch('/api/order', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify(order)
   }).then(r => r.ok ? r.json() : Promise.reject())
     .then(j => done('✅ Užsakymas #' + j.id + ' priimtas! Susisieksime telefonu ' + order.phone + '.'))
-    .catch(() => done('✅ Užsakymas užregistruotas vietoje. Parodykite jį kasoje arba paskambinkite +370 600 00000.'));
+    .catch(() => done('✅ Užsakymas užregistruotas. Paspauskite mygtuką žemiau – žinutė jau paruošta, beliks ją išsiųsti.'));
   function done(msg) {
     cart = {}; saveCart(); f.reset();
     btn.disabled = false; btn.textContent = 'Pateikti užsakymą';
     document.getElementById('cartItems').innerHTML = '';
     document.getElementById('checkoutBox').hidden = true;
     const m = document.getElementById('orderMsg');
-    m.textContent = msg; m.hidden = false;
+    // sms: nuoroda su užpildyta žinute (iOS ir Android palaiko ?body=)
+    const smsHref = 'sms:' + SHOP_PHONE + '?body=' + encodeURIComponent(smsText);
+    m.innerHTML = '<p>' + msg + '</p><a class="btn sms-btn" href="' + smsHref + '">📩 Siųsti užsakymą SMS žinute</a>';
+    m.hidden = false;
   }
 }
 
